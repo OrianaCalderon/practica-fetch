@@ -1,8 +1,10 @@
-import React , {useState} from "react";
+import React , {useState, useEffect} from "react";
 
 
 //create your first component
 const Home = () => {
+
+	let calderon = "https://assets.breatheco.de/apis/fake/todos/user/calderon"
 
 	const [tarea , setTarea]=useState({
 		task:"",
@@ -38,6 +40,33 @@ const Home = () => {
 			)
 		})
 		setListaTarea(borrar)
+	}
+
+
+	const createUser =async()=>{
+		try{
+			let response= await fetch(`${calderon}`)
+			if(response.ok){
+				let data = await response.json()
+				if(response.status != 404){
+					setListaTarea(data)
+				}
+			}else{
+				let responseCreate = await fetch(`${calderon}`,{
+				method:"POST",
+				hearders:{"Content-Type":"application/json"},
+				body: JSON.stringify([])
+				})
+
+				if(responseCreate.ok){
+					createUser()
+				}
+			}
+			
+		}catch(error){
+			console.log(error)
+		}
+
 	}
 
 
