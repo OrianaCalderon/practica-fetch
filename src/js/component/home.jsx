@@ -7,7 +7,7 @@ const Home = () => {
 	let calderon = "https://assets.breatheco.de/apis/fake/todos/user/calderon"
 
 	const [tarea , setTarea]=useState({
-		task:"",
+		label:"",
 		done:false
 	})
 
@@ -18,13 +18,27 @@ const Home = () => {
 
 	}
 
-	const guardarTarea =(event)=>{
+	const guardarTarea =async(event)=>{
 		if(event.key === "Enter"){
-			if(tarea.task.trim() !== ""){
-				setListaTarea([...listaTarea, tarea])
-				setTarea({
-					task:"",
-					done: false})
+			if(tarea.label.trim() !== ""){
+				try{
+					let response = await fetch(`${calderon}`,{
+						method:"PUT",
+						headers:{"Content-Type":"application/json"},
+						body: JSON.stringify([...listaTarea,tarea])
+					}) 
+					if(response.ok){
+						setTarea({
+							label:"",
+							done:false
+						})
+						createUser()
+					}
+
+				}catch(error){
+					console.log(error)
+				}
+
 			}else{
 				alert("Debes escribir una tarea")
 			}
@@ -33,13 +47,26 @@ const Home = () => {
 		}
 	}
 
-	const deleteTask = (id)=>{
+	const deleteTask = async(id)=>{
 		let borrar = listaTarea.filter((item,index)=>{
-			return(
-				id !== index
-			)
+			if(id != index){
+				return item
+			}
 		})
-		setListaTarea(borrar)
+		try{
+			let response = await fetch(`${calderon}`,{
+				method:"PUT",
+				headers:{"Content-Type":"application/json"},
+				body: JSON.stringify(borrar)
+			})
+			if(response.ok){
+				createUser()
+			}
+
+		}catch(error){
+			console.log(error)
+		}
+		
 	}
 
 
@@ -48,6 +75,7 @@ const Home = () => {
 			let response= await fetch(`${calderon}`)
 			if(response.ok){
 				let data = await response.json()
+				
 				if(response.status != 404){
 					setListaTarea(data)
 				}
@@ -69,6 +97,10 @@ const Home = () => {
 
 	}
 
+	useEffect(()=>{
+		createUser()
+	},[])
+
 
 	return (
 		<div className="container">
@@ -83,9 +115,9 @@ const Home = () => {
 						type="text"
 						placeholder="que que quieres?"
 						className="dato"
-						name="task"
+						name="label"
 						onChange={handleChange}
-						value={tarea.task}
+						value={tarea.label}
 						onKeyDown={guardarTarea}
 						 />
 				</div>
@@ -96,7 +128,7 @@ const Home = () => {
 						{
 							listaTarea.map((item,index)=>{
 								return(
-									<li key={index} onClick={()=>deleteTask(index)}>{item.task}</li>
+									<li key={index} onClick={()=>deleteTask(index)}>{item.label}</li>
 								)
 								
 							})
